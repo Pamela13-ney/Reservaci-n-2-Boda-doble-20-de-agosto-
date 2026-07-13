@@ -136,7 +136,7 @@
         <div style="font-family:'Cormorant Garamond',serif; font-size:clamp(22px,5.4vw,32px); letter-spacing:0.14em; color:#21304F;">20 · AGOSTO · 2026</div>
         <span style="height:1px; width:34px; background:#21304F; opacity:.3;"></span>
       </div>
-      <div style="font-size:13.5px; letter-spacing:0.34em; text-transform:uppercase; color:#5C6748;">Jueves · Club Rotario</div>
+      <div style="font-size:13.5px; letter-spacing:0.34em; text-transform:uppercase; color:#5C6748;">Jueves · 6:00 PM · Club Rotario</div>
     </div>
   </section>
 
@@ -403,14 +403,16 @@ class Component extends DCLogic {
   userPaused = false;
   primed = false;
 
-  // Precarga el audio (sin reproducir) para que arranque rápido al abrir
+  // Pre-reproduce en SILENCIO (muteado) para dejar el audio listo; no se oye nada
   primeAudio = () => {
     const a = this.audioEl.current;
     if (!a || this.primed) return;
     this.primed = true;
-    a.muted = false;
+    a.muted = true;
     a.volume = 1;
     try { a.load(); } catch (e) {}
+    const p = a.play();
+    if (p && p.then) p.catch(() => {});
   };
 
   tryPlay = () => {
@@ -418,23 +420,21 @@ class Component extends DCLogic {
     if (!a || this.userPaused) return;
     a.muted = false;
     a.volume = 1;
+    // Si ya venía sonando en silencio, solo lo activamos: suena al instante
     if (!a.paused) { this.setState({ playing: true }); return; }
     const p = a.play();
     if (p && p.then) p.then(() => this.setState({ playing: true })).catch(() => {
-      // Reintento: recarga la fuente y prueba de nuevo
       try { a.load(); } catch (e) {}
       setTimeout(() => {
         const q = a.play();
         if (q && q.then) q.then(() => this.setState({ playing: true })).catch(() => {});
-      }, 250);
+      }, 200);
     });
   };
 
   openEnvelope = () => {
     if (this.state.opened) return;
     this.setState({ opened: true });
-    const a = this.audioEl.current;
-    if (a) { try { a.currentTime = 0; } catch (e) {} }
     this.tryPlay();
     setTimeout(() => this.setState({ envGone: true }), 3000);
   };
@@ -453,7 +453,7 @@ class Component extends DCLogic {
   };
 
   componentDidMount() {
-    this.target = new Date('2026-08-20T17:00:00').getTime();
+    this.target = new Date('2026-08-20T18:00:00').getTime();
     this.tick();
     this.timer = setInterval(() => this.tick(), 1000);
     // Precarga en silencio para que suene al instante al abrir el sobre
