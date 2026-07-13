@@ -403,14 +403,14 @@ class Component extends DCLogic {
   userPaused = false;
   primed = false;
 
-  // Empieza a bufferizar en silencio (los móviles permiten autoplay si está muteado)
+  // Precarga el audio (sin reproducir) para que arranque rápido al abrir
   primeAudio = () => {
     const a = this.audioEl.current;
     if (!a || this.primed) return;
     this.primed = true;
-    a.muted = true;
-    const p = a.play();
-    if (p && p.then) p.catch(() => {});
+    a.muted = false;
+    a.volume = 1;
+    try { a.load(); } catch (e) {}
   };
 
   tryPlay = () => {
