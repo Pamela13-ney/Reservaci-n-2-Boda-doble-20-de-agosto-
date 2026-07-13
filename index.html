@@ -433,6 +433,8 @@ class Component extends DCLogic {
   openEnvelope = () => {
     if (this.state.opened) return;
     this.setState({ opened: true });
+    const a = this.audioEl.current;
+    if (a) { try { a.currentTime = 0; } catch (e) {} }
     this.tryPlay();
     setTimeout(() => this.setState({ envGone: true }), 3000);
   };
@@ -462,15 +464,9 @@ class Component extends DCLogic {
       this._onEnded = () => { if (!this.userPaused) { try { a.currentTime = 0; a.play().catch(() => {}); } catch (e) {} } };
       a.addEventListener('ended', this._onEnded);
     }
-    // Reintenta reproducir con el primer toque (desbloqueo de audio en móviles)
-    this._retry = () => this.tryPlay();
-    document.addEventListener('pointerdown', this._retry, { passive: true });
-    document.addEventListener('touchstart', this._retry, { passive: true });
   }
   componentWillUnmount() {
     clearInterval(this.timer);
-    document.removeEventListener('pointerdown', this._retry);
-    document.removeEventListener('touchstart', this._retry);
   }
 
   tick() {
